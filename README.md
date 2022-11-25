@@ -4,4 +4,5 @@ This repository contains source codes (python & R) to analyze and plot the resul
 High-confidence PPI network of α-arrestins from human and fly can be found in the following links:
 
 Human : http://big.hanyang.ac.kr/alphaArrestin_Human
+
 Fly : http://big.hanyang.ac.kr/alphaArrestin_Fly
