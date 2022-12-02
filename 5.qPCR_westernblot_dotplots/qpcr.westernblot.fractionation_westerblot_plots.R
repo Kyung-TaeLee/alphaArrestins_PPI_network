@@ -24,28 +24,7 @@ ttest <- t.test(sicon_values, sitxnip_values, alternative="two.sided", paired=T)
 ttest
 # t = 6.3127, df = 2.4321, p-value = 0.0146
 
-## 2. Ngoc qPCR data of siNegative and siTXNIP
-inputD <- read.delim("qpcr_tubulin.txt", header=T, sep="\t", check.names = F)
-
-p <- ggplot(inputD, aes(x=status, y=value)) + 
-  geom_dotplot(binaxis='y', stackdir='center')
-
-# Use geom_errorbar()
-p + stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", color="red", width=0.2) +
-  stat_summary(fun.y=mean, geom="point", color="red")+
-  scale_y_continuous(limits = c(0,1.2), breaks = seq(0,1.2,by= 0.3))+ theme_bw()
-ggsave("qpcr_tubulin.pdf")
-
-# paired student's t-test
-
-sicon_values <- subset(inputD, status=="siCon")$value
-sitxnip_values <- subset(inputD, status=="siTXNIP")$value
-ttest <- t.test(sicon_values, sitxnip_values, alternative="two.sided", paired=T)
-ttest
-# t = 15.793, df = 3.3268, p-value = 0.0003411
-
-## 3. Ngoc fractionation western blot
+## 2. Ngoc fractionation western blot
 
 inputD <- read.delim("fractionation_westernblot.txt", header=T, sep="\t", check.names = F)
 head(inputD)
@@ -69,3 +48,15 @@ ttest
 # Cytoplasm : txnip : 0.02209 / hdac2 : 0.7904
 # Nucleus : txnip : 0.03169 / hdac2 : 0.3471
 ## 
+
+## 3. Ngoc RT-qPCR and RNA-seq average values
+
+inputD <- read.delim("qpcr_tubulin.RNAseq.txt", header=T, sep="\t", check.names = F)
+head(inputD)
+# Use position=position_dodge()
+ggplot(data=inputD, aes(x=condition, y=value)) +
+  geom_bar(stat="identity", position=position_dodge())+ 
+  theme_bw()+
+  facet_wrap(.~measure, scales = "free_y")
+
+ggsave("qpcr_tubulin.RNAseq.pdf")
