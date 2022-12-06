@@ -51,12 +51,48 @@ ttest
 
 ## 3. Ngoc RT-qPCR and RNA-seq average values
 
-inputD <- read.delim("qpcr_tubulin.RNAseq.txt", header=T, sep="\t", check.names = F)
-head(inputD)
-# Use position=position_dodge()
-ggplot(data=inputD, aes(x=condition, y=value)) +
-  geom_bar(stat="identity", position=position_dodge())+ 
-  theme_bw()+
-  facet_wrap(.~measure, scales = "free_y")
+#+++++++++++++++++++++++++
+# Function to calculate the mean and the standard deviation
+# for each group
+#+++++++++++++++++++++++++
+# data : a data frame
+# varname : the name of a column containing the variable
+#to be summariezed
+# groupnames : vector of column names to be used as
+# grouping variables
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+  return(data_sum)
+}
 
-ggsave("qpcr_tubulin.RNAseq.pdf")
+inputD <- read.delim("qpcr_tubulin.RNAseq.replicates.txt", header=T, sep="\t", check.names = F)
+head(inputD)
+
+avger_inputD <- data_summary(inputD, "value", groupnames= c("condition","method"))
+
+# Use position=position_dodge()
+p<- ggplot(data=avger_inputD, aes(x=condition, y=value)) +
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=.2,
+                position=position_dodge(.9)) + 
+  theme_bw()+
+  facet_wrap(.~method, scales = "free_y")+
+  geom_point(data= inputD, aes(x=condition, y= value))
+p
+
+## RT-qPCR t test (two-sided, paired)
+sicon_values <- subset(inputD, condition=="siCon" & method=="rt-qpcr")$value
+sitxnip_values <- subset(inputD, condition=="siTXNIP" & method=="rt-qpcr")$value
+ttest <- t.test(sicon_values, sitxnip_values, alternative="two.sided", paired=T)
+ttest
+# p-value = 0.0001062
+
+ggsave("qpcr_tubulin.RNAseq.replicates.pdf")
